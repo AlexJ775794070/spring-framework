@@ -185,6 +185,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		Assert.notNull(resources, "Resource array must not be null");
 		int count = 0;
 		for (Resource resource : resources) {
+			//模板设计模式，调用到子类中的方法
 			count += loadBeanDefinitions(resource);
 		}
 		return count;
@@ -192,6 +193,7 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 
 	@Override
 	public int loadBeanDefinitions(String location) throws BeanDefinitionStoreException {
+		//重写的方法，这个方法接收两个参数
 		return loadBeanDefinitions(location, null);
 	}
 
@@ -211,16 +213,22 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		//这里获取的就是AbstractXmlApplicationContext
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
-
+		//会竟如导这里AbstractXmlApplicationContext
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				//把字符串类型的xml文件路径，形如：classpath*:user/**/*-context.xml,转换成Resource对象类型，其实就是用流
+				//的方式加载配置文件，然后封装成Resource对象，不重要，可以不看
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+
+				//主要看这个方法 ** 重要程度 5
+				//重写的方法，上一个是String数组，这个是Resource对象数组
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -248,12 +256,14 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 			return count;
 		}
 	}
-
+	//重写的方法，这个方法是接收字符串数组的
 	@Override
 	public int loadBeanDefinitions(String... locations) throws BeanDefinitionStoreException {
 		Assert.notNull(locations, "Location array must not be null");
 		int count = 0;
+		//配置文件有多个，加载多个配置文件
 		for (String location : locations) {
+			//重写的方法，这个方法是接收单个字符串的
 			count += loadBeanDefinitions(location);
 		}
 		return count;

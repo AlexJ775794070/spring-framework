@@ -122,15 +122,31 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+
+		//如果BeanFactory不为空，则清除BeanFactory和里面的实例
 		if (hasBeanFactory()) {
+			//把map清空就是销毁了
+			//循环从各个map中移除这个bean
+			//disposableBeans这个map的key就是bean的名字
 			destroyBeans();
+			//将beanFactory赋值为null就是关闭
 			closeBeanFactory();
 		}
 		try {
+			//创建DefaultListableBeanFactory
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
+			//这个给对象设置id的方法getId()
+			//设置这个对象beanFactory的id，对象id怎么生成的，可以看看getId()方法
 			beanFactory.setSerializationId(getId());
+
+			//设置是否可以循环依赖 allowCircularReferences
+			//是否允许使用相同名称重新注册不同的bean实现.
 			customizeBeanFactory(beanFactory);
+
+			//解析xml，并把xml中的标签封装成BeanDefinition对象
+			//重要性 5
 			loadBeanDefinitions(beanFactory);
+			//这里就是给beanFactory设置值的地方，也要加锁
 			synchronized (this.beanFactoryMonitor) {
 				this.beanFactory = beanFactory;
 			}
@@ -165,6 +181,8 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * i.e. has been refreshed at least once and not been closed yet.
 	 */
 	protected final boolean hasBeanFactory() {
+		//加锁，对象锁，同一时间只有一个线程能访问beanFactoryMonitor
+		//预计给beanFactory对象设置值的时候也要加这把锁
 		synchronized (this.beanFactoryMonitor) {
 			return (this.beanFactory != null);
 		}
@@ -204,6 +222,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 */
 	protected DefaultListableBeanFactory createBeanFactory() {
+		//想获取parent的bean factory 但是这里parent是空
 		return new DefaultListableBeanFactory(getInternalParentBeanFactory());
 	}
 

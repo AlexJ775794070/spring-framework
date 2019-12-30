@@ -508,13 +508,51 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		return this.applicationListeners;
 	}
 
+	/*
+	 *	该方法是spring容器初始化的核心方法。是spring容器初始化的核心流程，是一个典型的父类模板设计模式的运用
+	 *		根据不同的上下文对象，会掉到不同的上下文对象子类方法中
+	 *
+	 *	核心上下文子类有：
+	 *	ClassPathXmlApplicationContext
+	 *	FileSystemXmlApplicationContext
+	 *	AnnotationConfigApplicationContext
+	 *	EmbeddedWebApplicationContext(springboot)
+	 *
+	 * 方法重要程度：
+	 *  0：不重要，可以不看
+	 *  1：一般重要，可看可不看
+	 *  5：非常重要，一定要看
+	 * */
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
+		//加锁,确保同一时间只有一个线程能启动容器
+		//初始化和销毁容器的时候加锁
 		synchronized (this.startupShutdownMonitor) {
+			//为容器初始化做准备，重要程度：0
+			//设置开始时间，容器状态，替换上下文环境中的占位符，验证环境中要求的属性
+			//初始化任何上下文环境中的占位符属性
+			//校验所有必须的属性是否都有
 			// Prepare this context for refreshing.
 			prepareRefresh();
 
+			/*
+			   重要程度：5
+
+			  1、创建BeanFactory对象
+			* 2、xml解析
+			* 	传统标签解析：bean、import等
+			* 	自定义标签解析 如：<context:component-scan base-package="com.xiangxue.jack"/>
+			* 	自定义标签解析流程：
+			* 		a、根据当前解析标签的头信息找到对应的namespaceUri
+			* 		b、加载spring所有jar中的spring.handlers文件。并建立映射关系
+			* 		c、根据namespaceUri从映射关系中找到对应的实现了NamespaceHandler接口的类
+			* 		d、调用类的init方法，init方法是注册了各种自定义标签的解析类
+			* 		e、根据namespaceUri找到对应的解析类，然后调用paser方法完成标签解析
+			*
+			* 3、把解析出来的xml标签封装成BeanDefinition对象
+			* */
 			// Tell the subclass to refresh the internal bean factory.
+			//获得新的bean factory
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
@@ -596,6 +634,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Validate that all properties marked as required are resolvable
 		// see ConfigurablePropertyResolver#setRequiredProperties
+		//取出来看一下要求的属性值是否为空，如果为空就抛异常
 		getEnvironment().validateRequiredProperties();
 
 		// Allow for the collection of early ApplicationEvents,
@@ -619,7 +658,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+		//核心方法，必须读，重要程度：5
+		//这个方法是由它的子类实现的
 		refreshBeanFactory();
+		//先刷新bean factory
+		//然后再返回 bean factory
 		return getBeanFactory();
 	}
 

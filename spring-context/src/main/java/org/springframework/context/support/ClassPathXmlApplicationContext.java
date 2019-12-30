@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  * @see #getResourceByPath
  * @see GenericApplicationContext
  */
-public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
+public class ClassPathXmlApplicationContext extends org.springframework.context.support.AbstractXmlApplicationContext {
 
 	@Nullable
 	private Resource[] configResources;
@@ -82,6 +82,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	 * @throws BeansException if context creation failed
 	 */
 	public ClassPathXmlApplicationContext(String configLocation) throws BeansException {
+		//将配置文件字符串包装成数组
 		this(new String[] {configLocation}, true, null);
 	}
 
@@ -137,10 +138,20 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 	public ClassPathXmlApplicationContext(
 			String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
 			throws BeansException {
-
+        //parent是空，在层层调用父类的方法属性设置了值
+		//设置了一个PathMatchingResourcePatternResolver
+		//路径匹配资源模式解析器
+		//设置parent 如果parent不为空，则合并环境getEnvironment().merge
 		super(parent);
+
+		//创建解析器，解析configLocations
+		//configLocations就是配置文件的名称.替换掉路径中的变量等
+		//将配置文件中的占位符解析掉然后放入configLocations字符串数组变量中
+		//这个是父类的父类的方法
 		setConfigLocations(configLocations);
+		//refresh传的是默认的truetrue
 		if (refresh) {
+			//refresh方法是重点
 			refresh();
 		}
 	}

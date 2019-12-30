@@ -180,7 +180,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param parentBeanFactory parent bean factory, or {@code null} if none
 	 */
 	public AbstractAutowireCapableBeanFactory(@Nullable BeanFactory parentBeanFactory) {
+		//往忽略依赖接口里面设置了三个类
+		//BeanNameAware.class
+		//BeanFactoryAware.class
+		//BeanClassLoaderAware.class
 		this();
+		//设置parent的值
 		setParentBeanFactory(parentBeanFactory);
 	}
 
